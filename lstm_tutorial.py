@@ -1,15 +1,15 @@
+#!/usr/bin/env python
+# -*- coding:utf8 -*-
 import collections
 import os
 import numpy as np
 import argparse
-import pdb
 import tensorflow as tf
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Embedding, Dropout, TimeDistributed, Dense, Activation
 from tensorflow.keras.layers import LSTM
 from tensorflow.keras.callbacks import ModelCheckpoint
-
 
 data_path = 'tutorial_data'
 parser = argparse.ArgumentParser()
@@ -19,9 +19,11 @@ args = parser.parse_args()
 if args.data_path:
     data_path = args.data_path
 
+
 def read_words(filename):
     with tf.gfile.GFile(filename, 'r') as f:
         return f.read().replace('\n', '<eos>').split()
+
 
 def build_vocab(filename):
     """return: {word: index}"""
@@ -32,9 +34,11 @@ def build_vocab(filename):
     word_to_id = dict(zip(words, range(len(words))))
     return word_to_id
 
+
 def file_to_ids(filename, word_to_id):
     data = read_words(filename)
     return [word_to_id[word] for word in data if word in word_to_id]
+
 
 def load_data():
     train_path = os.path.join(data_path, 'ptb.train.txt')
@@ -52,6 +56,7 @@ def load_data():
     print(vocabulary)
     print(' '.join(reversed_dictionary[x] for x in train_data[:10]))
     return train_data, valid_data, test_data, vocabulary, reversed_dictionary
+
 
 train_data, valid_data, test_data, vocabulary, reversed_dictionary = load_data()
 
@@ -79,6 +84,7 @@ class KerasBatchGenerator(object):
                 self.current_idx += self.skip_step
             yield x, y
 
+
 num_steps = 30
 batch_size = 20
 train_data_generator = KerasBatchGenerator(train_data, num_steps, batch_size, vocabulary, skip_step=num_steps)
@@ -104,9 +110,9 @@ checkpointer = ModelCheckpoint(filepath=data_path + 'model/-{epoch:02d}.hdf5', v
 num_epochs = 50
 if args.run_opt == 1:
     model.fit_generator(train_data_generator.generate(),
-                        len(train_data)//(batch_size*num_steps), num_epochs,
+                        len(train_data) // (batch_size * num_steps), num_epochs,
                         validation_data=valid_data_generator.generate(),
-                        validation_steps=len(valid_data)//(batch_size*num_steps),
+                        validation_steps=len(valid_data) // (batch_size * num_steps),
                         callbacks=[checkpointer])
     model.save(os.path.join(data_path, 'final_model.hdf5'))
 elif args.run_opt == 2:
@@ -143,3 +149,4 @@ elif args.run_opt == 2:
         pred_print_out += reversed_dictionary[predict_word] + " "
     print(true_print_out)
     print(pred_print_out)
+
